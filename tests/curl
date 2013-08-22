@@ -1,0 +1,3 @@
+curl -X POST -H "Content-Type: application/json" -d '{"name":"tom","password":"private"}' http://localhost:9393/users/
+curl -X PUT -H "Content-Type: application/json" -d '{"name":"tom","password":"private", "id": 12345}' http://localhost:9393/users/
+curl -X DELETE -H "Content-Type: application/json" -d '{"id": 12345}' http://localhost:9393/users/
