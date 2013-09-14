@@ -60,9 +60,10 @@ class AppController < Sinatra::Base
       }.to_json
     end
 
-    def contain_all_required_fields?(field_type)
+    def contain_all_required_fields?(field_type, from_json = false)
       return true if (fields = model.send(field_type)).empty?
-      fields.all? { |field| params.has_key?(field) and !params[field].empty? }
+      input_params = from_json ? json_params : params.dup
+      fields.all? { |field| input_params.has_key?(field) and !input_params[field].empty? }
     end
 
   end
@@ -78,10 +79,11 @@ class AppController < Sinatra::Base
 
   get '/' do
     halt(404, 'some fields required'.to_json) unless contain_all_required_fields?(:get_required_fields)
-    model.where(params).limit(@limit).offset(@offset).order(@order).to_json
+    model.select(model.return_fields).where(params).limit(@limit).offset(@offset).order(@order).to_json
   end
 
   post '/' do
+    halt(404, 'some fields required'.to_json) unless contain_all_required_fields?(:create_required_fields, true)
     json = json_params
     if result = model.send(:create, json)
       result.to_json
@@ -91,6 +93,7 @@ class AppController < Sinatra::Base
   end
 
   put '/' do
+    halt(404, 'some fields required'.to_json) unless contain_all_required_fields?(:update_required_fields, true)
     json = json_params
     id = json.delete("id")
     json_status(404, 'id is required') unless id
@@ -105,7 +108,6 @@ class AppController < Sinatra::Base
   end
 
   delete '/' do
-    content_type :json
     json = json_params
     id = json.delete("id")
     json_status(404, 'id is required') unless id

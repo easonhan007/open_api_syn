@@ -1,19 +1,36 @@
 class AppModel < ActiveRecord::Base
 	self.abstract_class = true
 
-	def return_fields
-		self.class.column_names
-	end
+	class << self
+		# return fields for get request
+		def return_fields
+			self.class.column_names.join(',')
+		end
 
-	def self.get_required_fields
-		[]
-	end
+		def get_required_fields
+			[]
+		end
 
-	def json_output
-		result = {}
-		return_fields.each { |f| result[f.to_sym] = self[f] }
-		result.to_json
-	end
+		def create_required_fields
+			[]
+		end
+
+		def update_required_fields
+			[]
+		end
+
+		def build_like_fields(params)
+			model_like_fields = self.like_fields rescue []
+			like_fields = []
+			unless model_like_fields.is_a?(Array) and model_like_fields.empty?
+				model_like_fields.each { |f| like_fields << params.delete(f) }
+			end
+		end
+
+		def build_in_fields
+		end
+
+	end 
 
 end
 
